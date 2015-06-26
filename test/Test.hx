@@ -20,7 +20,7 @@ import nw.gui.Shell;
 import nw.gui.Shortcut;
 import nw.gui.Tray;
 import nw.gui.Window;
-
+import helps.AssetsPath;
 
 class Test{
 	
@@ -214,12 +214,13 @@ class Test{
 		
 	}
 	public function new() {
+		nw.gui.Window.get().show(true);
 		testShortcut();
 		testMenu();
 		testScreen();
 		testClip();
 		testCookie();
-		nw.gui.Window.get().show(true);
+		trace(AssetsPath.JSON_package);
 	}
 	
 	static public function main(){
