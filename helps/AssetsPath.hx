@@ -7,7 +7,7 @@ package helps;
 * 
 * Stolen from: https://github.com/ncannasse/heaps/blob/master/hxd/res/FileTree.hx
 */
-@:build(helps.AssetsAuto.build())
+@:build(helps.ZzNo_Need_Call.build())
 class AssetsPath{
 	//static inline var assert_name:String = "path/to/assert_name.ext";
 }
@@ -15,7 +15,7 @@ class AssetsPath{
 /**
 No need To Call this Class. 
 */
-@:noDoc class AssetsAuto{//private access issue: https://github.com/HaxeFoundation/haxe/issues/3589
+@:noDoc class ZzNo_Need_Call{//private access issue: https://github.com/HaxeFoundation/haxe/issues/3589
 	public static function build(){
 		throw "No need To Call this Class";
 	}
@@ -32,7 +32,7 @@ private typedef Pair = {
 	relUrl:String
 }
 
-@:noDoc class AssetsAuto{
+@:noDoc class ZzNo_Need_Call{
 	
 	var path:String;
 	
@@ -142,7 +142,7 @@ private typedef Pair = {
 	static var invalidChars = ~/[^A-Za-z0-9_]/g;
 	
 	static public function build() {
-		return new AssetsAuto().scan();
+		return new ZzNo_Need_Call().scan();
 	}
 }
 #end
