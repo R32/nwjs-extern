@@ -123,7 +123,7 @@ class Test{
 	}
 	
 	function testShortcut() {
-		var win = Gui.Window.get();
+		var win = nw.gui.Window.get();
 		var shortcut = new Shortcut({
 			key: "Ctrl+Shift+P",
 			
@@ -137,7 +137,7 @@ class Test{
 			}
 		});
 		
-		trace(Gui.App.registerGlobalHotKey(shortcut));
+		trace(Gui.app.registerGlobalHotKey(shortcut));
 	}
 	
 	function testCookie(){
@@ -183,7 +183,7 @@ class Test{
 	
 	function testScreen() {
 		
-		var s = Gui.Screen.Init();
+		var s = Gui.screen.Init();
 		
 		
 		function successCb(stream:{ended:Bool, id:String, label:String,onremovetrack:Dynamic,onaddtrack:Dynamic, onended:Dynamic}){

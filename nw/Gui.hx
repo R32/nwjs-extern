@@ -21,15 +21,15 @@ In summary, please DO NOT do following things:
 @:jsRequire("nw.gui")
 extern class Gui {
 	
-	static var App:nw.gui.App;
+	@:native("App") static var app:nw.gui.App;
 	
-	static var Shell:nw.gui.Shell;
+	@:native("Shell") static var shell:nw.gui.Shell;
 	
-	static var Screen:nw.gui.Screen;
+	@:native("Screen") static var screen:nw.gui.Screen;
 	
-	inline static var Clipboard = nw.gui.Clipboard;
+	//inline static var Clipboard = nw.gui.Clipboard;
 	
-	inline static var Window = nw.gui.Window;
+	//inline static var Window = nw.gui.Window;
 	
 	//@:deprecated("use 'nw.gui.Menu' instead of 'Gui.Menu'") static var Menu = nw.gui.Menu;
 	//@:deprecated("use 'nw.gui.MenuItem' instead of 'Gui.MenuItem'")inline static var MenuItem = nw.gui.MenuItem;
