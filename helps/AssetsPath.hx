@@ -3,7 +3,7 @@ package helps;
 
 #if !macro
 /**
-* Assets top dir: default is dir(Compiler.getOutput()) or -D nwroot=dir
+* Assets top dir: default is `bin` or -D nwroot=bin
 * 
 * Stolen from: https://github.com/ncannasse/heaps/blob/master/hxd/res/FileTree.hx
 */
@@ -125,10 +125,7 @@ private typedef Pair = {
 	public static function getOutPath() {
 		var dir = Context.definedValue("nwroot");
 		
-		if ( dir == null ) {
-			//dir = haxe.io.Path.directory(haxe.macro.Compiler.getOutput());  // in --display, these can not use Compiler.xxxxxx()
-			dir = "bin";
-		}
+		if ( dir == null ) dir = "bin";
 		
 		dir = haxe.io.Path.Path.normalize( sys.FileSystem.fullPath(dir) );
 		
