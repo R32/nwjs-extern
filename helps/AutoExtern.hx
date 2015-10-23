@@ -1,5 +1,6 @@
 package helps;
 
+#if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -8,7 +9,7 @@ import haxe.macro.PositionTools;
 using haxe.macro.ExprTools;
 using haxe.macro.TypeTools;
 using haxe.macro.MacroStringTools;
-
+#end
 
 /**
 Example: Popup.hx
@@ -25,8 +26,9 @@ class Popup{
 ```
 
 ------------------------
+------- conflict -------
 
-Issue: for **conflict** if `Aclass -> Bclass` and `Aclass <- Bclass`:
+Issue: for conflict if `Aclass -> Bclass` and `Aclass <- Bclass`:
 
 build.hxml
 
