@@ -180,11 +180,11 @@ typedef Bg = Background;
 		
 		cls.meta.remove(":keep");
 		cls.meta.add(":dce", [], cls.pos);
-		
+
 		//Context.defineType(td);
 		Context.defineModule(gen.module, [td]);
 		Context.registerModuleDependency(gen.module, Context.resolvePath((cls.pack.length == 0 ? cls.name : (cls.pack.join("/") + "/" + cls.name )) + ".hx"));	
-		Context.registerModuleDependency(gen.module, Context.getPosInfos(PositionTools.here()).file);	// current file name
+		//Context.registerModuleDependency(gen.module, Context.getPosInfos(gen.pos).file);	// current file name
 		return Context.getType(gen.module + "." +td.name).toComplexType();
 	#end
 	}
