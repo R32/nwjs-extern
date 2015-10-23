@@ -8,114 +8,160 @@ import haxe.macro.PositionTools;
 using haxe.macro.ExprTools;
 using haxe.macro.TypeTools;
 using haxe.macro.MacroStringTools;
+
+
 /**
-**Deprecated**, use Compiler.exclude, https://github.com/elsassph/modular-haxe-example
+Example: Popup.hx
 
-用于 JS 模块化编程, 自动将一个 haxe 类导出为 extern 类,仅用于语法提示. 
+```haxe
 
- - 设定为 extern class
- 
- - 字段过滤: 
-  * main 方法
-  * 以 _ 字符开始的字段
-  * 非 public
- 
- - 通过 `@:expose` 获得导出名,然后设置为 `@:native`
- 
- - 防止"被导出类"生成代码
+typedef Bg = helps.AutoExtern<Background>;	// 
 
-
- 
-How to Use:
-
- * original-class need to inherit the "helps.AutoExtern":
-	
-	```haxe
-	@:expose("bg")
-	class Background #if (display || (auto_extern != "Background" )) extends helps.AutoExtern #end{
-		//...
+class Popup{
+	public static function main(){
+		Bg.init(chrome.Extension.getBackgroundPage());	// or Bg.init(js.Browser.window);
 	}
-	```
- 
- * define `-D auto-extern[=callerMainClassName]` in import-side, `[=callerMainClassName]` is used to prevent conflicts
- 
- * import original-class in import-side, and then use the "Zx" as prefix
+}
+```
 
-	Example: Popup.hx
- 
-	```haxe
-	import Background;				//导入原类, 这个类需要继承 helps.AutoExtern
+------------------------
 
-	class Popup{
-		public static function main(){
-			ZxBackground.init(chrome.extension.getBackgroundPage()); 	// optional in Browser:
-			trace(ZxBackground);
-			var inst = new ZxBackground();
+Issue: for **conflict** if `Aclass -> Bclass` and `Aclass <- Bclass`:
+
+build.hxml
+
+```bash
+-D nwroot=build
+-lib hxnwjs
+-lib chrome-extension
+-lib chrome-app
+-cp src
+--each
+
+-main Background
+-D auto_extern=Background
+-js build/js/bg.js
+
+--next
+-main Popup
+-D auto_extern=Popup
+-js build/js/popup.js
+```
+
+Background.hx
+
+```haxe
+#if (auto_extern == "Background")
+typedef Po = helps.AutoExtern<Popup>;
+#else
+typedef Po = Popup;
+#end
+@:expose("bg") class Background{
+	public static var inst:Background;
+	public static function main() {
+		#if (auto_extern == "Background")
+		var view = chrome.Extension.getViews({type:"popup"});
+		if(view.length != 0){
+			Po.init(view[0]);
+			trace(Po.name);
 		}
+		#end
 	}
-	```
-	
-	build.hxml:
-	
-	```bash	
-	-main Background
-	-js build/js/bg.js
-	
-	--next
-	-D auto-extern=Popup
-	-main Popup
-	-js build/js/popup.js
-	```
+}
+```
 
-issue: 如上示例
- 
- * conflict: 感觉解决的方法有些繁锁.
-  
- * does not deal with `@:overload`
+Popup.hx
+
+```haxe
+#if (auto_extern == "Popup")
+typedef Bg = helps.AutoExtern<Background>;
+#else
+typedef Bg = Background;
+#end
+@:expose class Popup{
+	public inline static var name = "popup";
+	public static function main() {
+		#if (auto_extern == "Popup")
+		Bg.init(chrome.Extension.getBackgroundPage());
+		#end
+		trace(Bg.inst);
+	}
+}
+```
+
 */
 #if !macro
-@:autoBuild(helps.AutoExtern.build())
+@:genericBuild(helps.AutoExtern.gen())
 #end
-@:deprecated("Just use the \"Compiler.exclude()\" do it") class AutoExtern {
-	static public function build(){
-	#if (macro && (auto_extern || display))	
-		var cls:ClassType = Context.getLocalClass().get();
-
-		// prevent confilict
-		if (Context.definedValue("auto_extern") == cls.name) return null;
-
+@:dce class AutoExtern<Expose>{
+	static public function gen(){
+	#if macro
 		var pos = Context.currentPos();
+		var cls:ClassType;
+		var gen:ClassType;
 
-		var fields = Lambda.filter(Context.getBuildFields(), function(f:Field){
-			if (f.name == "main" || StringTools.fastCodeAt(f.name, 0) == "_".code) return false;
-			if (f.access.indexOf(APublic) == -1) return false;
-			return true;
-		});
+		switch(Context.getLocalType()){
+			case TInst(g, [TInst(c, _)]):
+				gen = g.get();
+				cls = c.get();
+			default:
+				Context.error("Class expected", pos);
+		}
+
+		var fields = new List<Field>();
+		for(kf in getAllFields(cls)){
+			if (StringTools.fastCodeAt(kf.name, 0) == "_".code) continue;
+			if (kf.isPublic) fields.push( toField(kf, false) );
+		}
+
+		for (kf in cls.statics.get()) {	
+			if (kf.name == "main" || StringTools.fastCodeAt(kf.name, 0) == "_".code) continue;
+			fields.push(toField(kf, true));
+		}
 
 		var expose = cls.name;
-		switch(cls.meta.extract(":expose")){
+		switch(cls.meta.extract(":expose")) {
+			case []:
+				Context.error("must set meta: \"@:expose\"", cls.pos);
 			case [ { name:_, pos:_, params:[t] } ]: 
 				expose = t.toString();	// with quotes: e.g: "aaa" or 'aaa';
-				expose = expose.substr(1, expose.length - 2);
-				
+				expose = expose.substr(1, expose.length - 2);			
 			default:
 		}
-		
+
 		td = {
 			isExtern: true,
-			pack: [],
-			name: "Zx" + cls.name,
+			pack: gen.pack,
+			name: cls.name,
 			pos: pos,
 			kind: TDClass(null, [], false),
-			fields: null,	// later
-			meta: [ { name:":native", pos: cls.pos, params:[(macro $v { expose } )] }]
+			fields: null,	
+			meta: [ { name:":native", pos: pos, params:[(macro $v { expose } )] },
+				{name:":dce",pos:pos, params: []}
+			]
 		};
 
+		if (cls.constructor != null){
+			var fc = toField(cls.constructor.get());
+			switch(fc.kind){
+				case FFun(f):
+					fc.kind = FFun({
+						args: f.args, 
+						ret: null,
+						expr: null
+					});
+				default:
+					Context.error("", fc.pos);
+			}
+			fields.push(fc);
+		}
+
 		td.fields = rec(cls.name, Lambda.array(fields));
-		// add static init method	
+
+		// add static method "init"
 		td.fields.push({
 			name: "init",
-			doc: "e.g: init(chrome.extension.getBackgroundPage());",
+			doc: "e.g: init(chrome.Extension.getBackgroundPage());",
 			access: [AStatic, APublic, AInline],
 			pos: pos,
 			kind: FFun( {
@@ -126,28 +172,27 @@ issue: 如上示例
 				}],
 				expr: macro {
 					#if !nodejs
-					untyped $i { "window." + expose } = $i { "context." + expose };
+					untyped window[$v{ expose }] = context[$v{ expose } ];
 					#end
 				}
 			})
 		});
 		
 		cls.meta.remove(":keep");
-		haxe.macro.Compiler.exclude(cls.pack.toDotPath(cls.name));
-		haxe.macro.Compiler.exclude("helps.AutoExtern");
+		cls.meta.add(":dce", [], cls.pos);
 		
-		Context.defineModule(td.name, [td]);
-		Context.registerModuleDependency(td.name, Context.resolvePath((cls.pack.length == 0 ? cls.name : (cls.pack.join("/") + "/" + cls.name )) + ".hx"));
-		Context.registerModuleDependency(td.name, Context.getPosInfos(pos).file);	// current file name
+		//Context.defineType(td);
+		Context.defineModule(gen.module, [td]);
+		Context.registerModuleDependency(gen.module, Context.resolvePath((cls.pack.length == 0 ? cls.name : (cls.pack.join("/") + "/" + cls.name )) + ".hx"));	
+		Context.registerModuleDependency(gen.module, Context.getPosInfos(PositionTools.here()).file);	// current file name
+		return Context.getType(gen.module + "." +td.name).toComplexType();
 	#end
-		return null;
 	}
+	
 	#if macro
 	static var td:TypeDefinition;
 
-	/**
-	e.g: typeFull("DOMElement") => "js.html.DOMElement"
-	*/
+	// e.g: typeFull("DOMElement") => "js.html.DOMElement"
 	static function typeFull(type_name:String, ?pack:Array<String>):String {	
 		if (pack != null && pack.length > 0) {
 			return pack.toDotPath(type_name);
@@ -190,26 +235,27 @@ issue: 如上示例
 	}
 
 	static function recType(eq:String, c:Null<ComplexType>):Null<ComplexType> {	
-		var ret = c;
+		return
 		switch(c){
-			case TPath(t):
-				if (t.name == eq){ 
-					ret = TPath( { pack:td.pack, name: td.name } );
+			case TPath(t):				
+				if (t.name == "StdTypes") {	
+					//TPath( { pack:[], name:t.sub } );
+					c;
+				}else if (t.name == eq) {
+					TPath( { pack:td.pack, name: td.name } );
 				}else {
-					ret = typeFull(t.name, t.pack).toComplex();	
-				}	
-
+					typeFull(t.name, t.pack).toComplex();
+				}
 			case TFunction(a, r): 
-					ret = recFunc(eq, { args:a, ret:r } );
+					recFunc(eq, { args:a, ret:r } );
 
 			case TAnonymous(a):
-					ret = TAnonymous( rec(eq, a) );
+					TAnonymous( rec(eq, a) );
 
 			// TODO: ???add more ComplexType
 			default:
-				ret = macro :Dynamic;
+				macro :Dynamic;
 		}
-		return ret;
 	}
 
 	static function rec(eq:String, fields:Array<Field>):Array<Field> {
@@ -217,9 +263,9 @@ issue: 如上示例
 		var kind:Null<FieldType>;
 
 		for (f in fields) {
-			switch(f.kind){
-				case FVar(t = TPath(_), _):
-					kind = FVar( recType(eq, t ));
+			switch(f.kind) {	
+				case FVar(t = TPath(_), e):
+					kind = FVar( recType(eq, t ), e);
 
 				case FVar(TFunction(a, r), _):
 					kind = FVar( recFunc(eq, { args:a, ret:r } ));
@@ -241,7 +287,6 @@ issue: 如上示例
 				default:
 					kind = f.kind;
 			}
-			
 			ret.push({
 				name: f.name,
 				pos: f.pos,
@@ -253,5 +298,87 @@ issue: 如上示例
 		}
 		return ret;
 	}	
+	
+	// member fields, not have static
+	static function getAllFields(ct:ClassType):Array<ClassField> {
+		var ret:Array<ClassField> = ct.fields.get();
+		
+		return ct.superClass == null ? ret : ret.concat( getAllFields(ct.superClass.t.get()) );
+	}
+	
+	static function varAccessToString(va : VarAccess, getOrSet : String) : String{
+		return
+		switch (va) {
+			case AccNormal: "default";
+			case AccNo: "null";
+			case AccNever: "never";
+			case AccResolve: throw "Invalid TAnonymous";
+			case AccCall: getOrSet;
+			case AccInline: "default";
+			case AccRequire(_, _): "default";
+		}
+	}
+
+	//TFun -> FFun
+	static function tf2f(tf:Type):FieldType {
+		return
+		switch(tf){
+			case TFun(args, ret):
+				FFun({
+					args: [
+						for (a in args) {
+							name: a.name,
+							opt: a.opt,
+							type: a.t.toComplexType(),
+						}
+					],
+					ret: ret.toComplexType(),
+					expr: null,
+				});
+
+			default:
+				Context.error("Invalid Type", Context.currentPos());
+				null;
+		}
+	}
+
+	// copy from haxe.macro.TypeTools.toField
+	static function toField(cf:ClassField, isStatic:Bool = false):Field {
+		var acc:Array<Access> = cf.isPublic ? [ APublic ] : [ APrivate ];
+		if (isStatic) acc.push(AStatic);
+		return {
+			name: cf.name,
+			doc: cf.doc,
+			meta: cf.meta.get(),
+			pos: cf.pos,
+			kind: switch([ cf.kind, cf.type ]) {
+					case [FVar(AccInline, AccNever), ret]:
+						acc.push(AInline);
+						FVar( ret.toComplexType(), Context.getTypedExpr({
+								expr: cf.expr().expr,
+								pos:cf.pos,
+								t:ret
+						}));
+				
+					case [ FVar(read, write), ret ]:
+						FProp(
+							varAccessToString(read, "get"),
+							varAccessToString(write, "set"),
+							ret.toComplexType(),
+							null
+						);
+
+					case [ FMethod(_), ret = TFun(_, _) ]:
+						tf2f(ret);
+
+					case [FMethod(_), TLazy(_)]:
+						tf2f(cf.expr().t);
+
+					default:
+						Context.error("Invalid TAnonymous", cf.pos);
+				},
+			access: acc
+		};
+	}
 	#end
 }
