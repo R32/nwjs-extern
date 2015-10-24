@@ -1,27 +1,7 @@
 package helps;
 
 
-#if !macro
-/**
-* Assets top dir: default is `bin` or -D nwroot=bin
-* 
-* Stolen from: https://github.com/ncannasse/heaps/blob/master/hxd/res/FileTree.hx
-*/
-@:build(helps.ZzNo_Need_Call.build())
-class AssetsPath{
-	//static inline var assert_name:String = "path/to/assert_name.ext";
-}
-
-/**
-No need To Call this Class. 
-*/
-@:noDoc class ZzNo_Need_Call{//private access issue: https://github.com/HaxeFoundation/haxe/issues/3589
-	public static function build(){
-		throw "No need To Call this Class";
-	}
-}
-#else
-
+#if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.io.Path;
@@ -32,7 +12,8 @@ private typedef Pair = {
 	relUrl:String
 }
 
-@:noDoc class ZzNo_Need_Call{
+@:noDoc 
+private class Zz{
 	
 	var path:String;
 	
@@ -48,7 +29,6 @@ private typedef Pair = {
 	
 	function scan():Array<haxe.macro.Expr.Field> {
 		var fields = Context.getBuildFields();
-		
 		var col:Array<Pair> = [];
 		
 		scanRec("", col);
@@ -59,10 +39,10 @@ private typedef Pair = {
 				doc: "filepath: " + it.relUrl,
 				access: [APublic, AStatic, AInline],
 				kind:  FVar(macro :String, Context.makeExpr(it.relUrl, pos)),
-				pos: this.pos
+				pos: pos
 			});
 		}
-		
+		Context.registerModuleDependency(currentModule, path);
 		return fields;
 	}
 	
@@ -120,8 +100,7 @@ private typedef Pair = {
 		
 		return { name:ident, relUrl:relUrl };
 	}
-	
-	
+		
 	public static function getOutPath() {
 		var dir = Context.definedValue("nwroot");
 		
@@ -135,11 +114,19 @@ private typedef Pair = {
 			Context.error("Resource directory does not exists '" + dir + "'", pos);
 		return dir;
 	}
-
 	static var invalidChars = ~/[^A-Za-z0-9_]/g;
-	
-	static public function build() {
-		return new ZzNo_Need_Call().scan();
-	}
 }
+#else
+/**
+Assets top dir: default is `bin` or -D nwroot=bin 
+*/
+@:build(helps.AssetsPath.build())
 #end
+class AssetsPath{
+	#if macro
+	public static function build() {	
+		return @:privateAccess new Zz().scan();
+	}
+	#end
+}
+
