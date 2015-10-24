@@ -20,7 +20,7 @@ typedef Bg = helps.AutoExtern<Background>;	//
 
 class Popup{
 	public static function main(){
-		Bg.init(chrome.Extension.getBackgroundPage());	// or Bg.init(js.Browser.window);
+		Bg.init(chrome.Extension.getBackgroundPage());
 	}
 }
 ```
@@ -28,7 +28,7 @@ class Popup{
 ------------------------
 ------- conflict -------
 
-Issue: for conflict if `Aclass -> Bclass` and `Aclass <- Bclass`:
+Issue: if `Aclass -> Bclass` and `Aclass <- Bclass`:
 
 build.hxml
 
@@ -65,9 +65,9 @@ typedef Po = Popup;
 		var view = chrome.Extension.getViews({type:"popup"});
 		if(view.length != 0){
 			Po.init(view[0]);
-			trace(Po.name);
 		}
 		#end
+		trace(Po.name);
 	}
 }
 ```
@@ -90,14 +90,14 @@ typedef Bg = Background;
 	}
 }
 ```
-
 */
 #if !macro
 @:genericBuild(helps.AutoExtern.gen())
 #end
-@:dce class AutoExtern<Expose>{
-	static public function gen(){
+class AutoExtern<Expose> {
 	#if macro
+	static public function gen(){
+	
 		var pos = Context.currentPos();
 		var cls:ClassType;
 		var gen:ClassType;
@@ -126,7 +126,7 @@ typedef Bg = Background;
 			case []:
 				Context.error("must set meta: \"@:expose\"", cls.pos);
 			case [ { name:_, pos:_, params:[t] } ]: 
-				expose = t.toString();	// with quotes: e.g: "aaa" or 'aaa';
+				expose = t.toString();	// with quotes: e.g: "aaa";
 				expose = expose.substr(1, expose.length - 2);			
 			default:
 		}
@@ -174,7 +174,7 @@ typedef Bg = Background;
 				}],
 				expr: macro {
 					#if !nodejs
-					untyped window[$v{ expose }] = context[$v{ expose } ];
+					untyped $i{"window." + expose} = context[$v{ expose } ];
 					#end
 				}
 			})
@@ -188,16 +188,13 @@ typedef Bg = Background;
 		Context.registerModuleDependency(gen.module, Context.resolvePath((cls.pack.length == 0 ? cls.name : (cls.pack.join("/") + "/" + cls.name )) + ".hx"));	
 		//Context.registerModuleDependency(gen.module, Context.getPosInfos(gen.pos).file);	// current file name
 		return Context.getType(gen.module + "." +td.name).toComplexType();
-	#end
 	}
-	
-	#if macro
 	static var td:TypeDefinition;
 
 	// e.g: typeFull("DOMElement") => "js.html.DOMElement"
 	static function typeFull(type_name:String, ?pack:Array<String>):String {	
 		if (pack != null && pack.length > 0) {
-			return pack.toDotPath(type_name);
+			return pack.join(".") + "." + type_name;
 		}
 		return Context.getType(type_name).toString();
 	}
