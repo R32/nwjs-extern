@@ -174,7 +174,7 @@ class AutoExtern<Expose> {
 				}],
 				expr: macro {
 					#if !nodejs
-					untyped $i{"window." + expose} = context[$v{ expose } ];
+					untyped js.Browser.window[$v{expose}] = context[$v{expose}];
 					#end
 				}
 			})
