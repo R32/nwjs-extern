@@ -192,11 +192,11 @@ class AutoExtern<Expose> {
 	static var td:TypeDefinition;
 
 	// e.g: typeFull("DOMElement") => "js.html.DOMElement"
-	static function typeFull(type_name:String, ?pack:Array<String>):String {	
+	static function typeFull(type_name:String, ?pack:Array<String>):Type {
 		if (pack != null && pack.length > 0) {
-			return pack.join(".") + "." + type_name;
+			type_name = pack.join(".") + "." + type_name;
 		}
-		return Context.getType(type_name).toString();
+		return Context.getType(type_name);
 	}
 
 	static function recFuncArg(eq:String, f:Function, ext:Field):Null<FieldType> {			
@@ -243,7 +243,7 @@ class AutoExtern<Expose> {
 				}else if (t.name == eq) {
 					TPath( { pack:td.pack, name: td.name } );
 				}else {
-					typeFull(t.name, t.pack).toComplex();
+					typeFull(t.sub == null ? t.name : t.name + "." + t.sub, t.pack).toComplexType();
 				}
 			case TFunction(a, r): 
 					recFunc(eq, { args:a, ret:r } );
