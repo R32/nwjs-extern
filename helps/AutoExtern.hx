@@ -16,10 +16,11 @@ Example: Popup.hx
 
 ```haxe
 
-typedef Bg = helps.AutoExtern<Background>;	// 
+private typedef Bg = helps.AutoExtern<Background>;	// 
 
 class Popup{
 	public static function main(){
+		$type(Bg); // Class<helps.Background>
 		Bg.init(chrome.Extension.getBackgroundPage());
 	}
 }
@@ -110,6 +111,30 @@ class AutoExtern<Expose> {
 				Context.error("Class expected", pos);
 		}
 
+		var expose = cls.name;
+		switch(cls.meta.extract(":expose")) {
+			case []:
+				Context.error("must set meta: \"@:expose\"", cls.pos);
+			case [ { name:_, pos:_, params:[t] } ]:
+				expose = t.toString();	// with quotes: e.g: "aaa";
+				expose = expose.substr(1, expose.length - 2);
+			default:
+		}
+
+		var exists = Context.getModule(gen.module);
+		for (c in exists){
+			switch (c) {
+				case TInst(t, _):
+					if (t.toString() == expose) return c.toComplexType();
+				default:
+			}
+		}
+
+		var fullname = gen.module + "." + cls.name;
+		if(cls.pack.length > 0){
+			fullname = gen.pack.join(".") + "." + fullname;
+		}
+
 		var fields = new List<Field>();
 		for(kf in getAllFields(cls)){
 			if (StringTools.fastCodeAt(kf.name, 0) == "_".code) continue;
@@ -119,16 +144,6 @@ class AutoExtern<Expose> {
 		for (kf in cls.statics.get()) {	
 			if (kf.name == "main" || StringTools.fastCodeAt(kf.name, 0) == "_".code) continue;
 			fields.push(toField(kf, true));
-		}
-
-		var expose = cls.name;
-		switch(cls.meta.extract(":expose")) {
-			case []:
-				Context.error("must set meta: \"@:expose\"", cls.pos);
-			case [ { name:_, pos:_, params:[t] } ]: 
-				expose = t.toString();	// with quotes: e.g: "aaa";
-				expose = expose.substr(1, expose.length - 2);			
-			default:
 		}
 
 		td = {
@@ -179,15 +194,17 @@ class AutoExtern<Expose> {
 				}
 			})
 		});
-		
+
+		var clsPath = cls.name + ".hx";
+		if (cls.pack.length > 0){
+			clsPath = cls.pack.join("/") + "/" + clsPath;
+		}
+
 		cls.meta.remove(":keep");
 		cls.meta.add(":dce", [], cls.pos);
-
-		//Context.defineType(td);
 		Context.defineModule(gen.module, [td]);
-		Context.registerModuleDependency(gen.module, Context.resolvePath((cls.pack.length == 0 ? cls.name : (cls.pack.join("/") + "/" + cls.name )) + ".hx"));	
-		//Context.registerModuleDependency(gen.module, Context.getPosInfos(gen.pos).file);	// current file name
-		return Context.getType(gen.module + "." +td.name).toComplexType();
+		Context.registerModuleDependency(gen.module, Context.resolvePath(clsPath));
+		return Context.getType(fullname).toComplexType();
 	}
 	static var td:TypeDefinition;
 
