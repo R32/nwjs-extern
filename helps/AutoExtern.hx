@@ -25,76 +25,11 @@ class Popup{
 	}
 }
 ```
-
-------------------------
-------- conflict -------
-
-Issue: if `Aclass -> Bclass` and `Aclass <- Bclass`:
-
-build.hxml
-
-```bash
--D nwroot=build
--lib hxnwjs
--lib chrome-extension
--lib chrome-app
--cp src
---each
-
--main Background
--D auto_extern=Background
--js build/js/bg.js
-
---next
--main Popup
--D auto_extern=Popup
--js build/js/popup.js
-```
-
-Background.hx
-
-```haxe
-#if (auto_extern == "Background")
-typedef Po = helps.AutoExtern<Popup>;
-#else
-typedef Po = Popup;
-#end
-@:expose("bg") class Background{
-	public static var inst:Background;
-	public static function main() {
-		#if (auto_extern == "Background")
-		var view = chrome.Extension.getViews({type:"popup"});
-		if(view.length != 0){
-			Po.init(view[0]);
-		}
-		#end
-		trace(Po.name);
-	}
-}
-```
-
-Popup.hx
-
-```haxe
-#if (auto_extern == "Popup")
-typedef Bg = helps.AutoExtern<Background>;
-#else
-typedef Bg = Background;
-#end
-@:expose class Popup{
-	public inline static var name = "popup";
-	public static function main() {
-		#if (auto_extern == "Popup")
-		Bg.init(chrome.Extension.getBackgroundPage());
-		#end
-		trace(Bg.inst);
-	}
-}
-```
 */
 #if !macro
 @:genericBuild(helps.AutoExtern.gen())
 #end
+@:deprecated("extern class allows a function body now.")
 class AutoExtern<Expose> {
 	#if macro
 	static public function gen(){
