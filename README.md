@@ -1,18 +1,26 @@
-nwjs-extern
+extern of [nw.js](https://github.com/nwjs/nw.js) for haxe
 -------
 
 **WIP**
 
- * extern api: https://github.com/nwjs/nw.js/wiki/Native-UI-API-Manual
-	
- * related to node.js: https://github.com/nwjs/nw.js/wiki/Changes-related-to-node
+DOCS: <http://docs.nwjs.io>
 
+Note: `-D nw-old` is used for old version of nw.js.
 
-#### dependencies:
+### state
 
- * [hxnodejs](https://github.com/HaxeFoundation/hxnodejs)
-	 
+package `nw`:
 
-#### nwjs doc
+- [x] App
+- [x] Clipboard
+- [x] Menu
+- [x] MenuItem
+- [x] Screen, TODO: maybe incorrectly
+- [x] Shell
+- [x] Shortcut
+- [x] Tray
+- [x] Window
 
- * [command line switches](https://github.com/nwjs/nw.js/wiki/Command-line-switches)
+### dependencies:
+
+* [hxnodejs](https://github.com/HaxeFoundation/hxnodejs)
