@@ -7,9 +7,7 @@ import js.node.events.EventEmitter;
 #end
 extern class Screen extends EventEmitter<Screen> {
 
-
 	var screens(default, null): Array<ScreenData>;
-
 
 	function chooseDesktopMedia (sources: Array<SourceType>, callback: String->Void): Bool;
 
@@ -18,7 +16,6 @@ extern class Screen extends EventEmitter<Screen> {
 
 	static var instance(get, never): Screen;
 	static inline function get_instance(): Screen { return untyped Screen; }
-
 
 	static var DesktopCaptureMonitor: DCMonitor; // TODO: Incomplete
 }
@@ -78,7 +75,7 @@ extern class DCMonitor extends EventEmitter<DCMonitor> {
 
 	                        // (id, name, order, type, primary)
 	var ADDED: DCMonitorEvent<String->String->Int->String->Bool->Void> = "added";
-                            // (order)
+	                        // (order)
 	var REMOVED: DCMonitorEvent<Int->Void> = "removed";
 	                        // (id, new_order, old_order)
 	var ORDERCHANGED: DCMonitorEvent<String->Int->Int->Void> = "orderchanged";

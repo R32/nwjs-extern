@@ -1,8 +1,6 @@
 extern of [nw.js](https://github.com/nwjs/nw.js) for haxe
 -------
 
-**WIP**
-
 DOCS: <http://docs.nwjs.io>
 
 Note: `-D nw-old` is used for old version of nw.js.
