@@ -6,9 +6,11 @@ import nw.Clipboard;
 import nw.Menu;
 import nw.MenuItem;
 import nw.Screen;
+import nw.Shell;
 import nw.Tray;
 import nw.Shortcut;
-
+import nw.Window;
+import js.Node.process;
 
 class Test {
 
@@ -24,9 +26,7 @@ class Test {
 		var c = Clipboard.getInstance();
 		c.set("hello world");
 
-
 		var screen = Screen.Init();
-		trace("Screen === Screen.Init(): " + untyped (Screen.instance == screen));
 
 		var tbar = new Menu( { type: MENUBAR } );
 
@@ -51,6 +51,10 @@ class Test {
 		var win = nw.Window.get();
 		win.menu = tbar;
 		win.show(true);
+
+		for (f in process.versions.keys()) {
+			trace(f + ": " + process.versions.get(f));
+		}
 	#if nw_old
 		trace("use -D nw-old");
 	#end
