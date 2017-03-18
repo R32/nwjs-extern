@@ -1,11 +1,12 @@
 package nw;
 
+import haxe.Constraints.Function;
 import js.node.events.EventEmitter;
 
 #if nw_old
 @:jsRequire("nw.gui", "App")
 #end
-extern class App extends EventEmitter<App> {
+extern class App {
 
 	static var argv: Array<String>;
 
@@ -50,11 +51,19 @@ extern class App extends EventEmitter<App> {
 	static function registerGlobalHotKey(shortcut: Shortcut): Bool;
 
 	static function unregisterGlobalHotKey(shortcut:Shortcut): Void;
+
+	static function on<T:Function>(event: AppEvent<T>, listener:T): Void;
+
+	static function once<T:Function>(event: AppEvent<T>, listener:T): Void;
+
+	static function removeListener<T:Function>(Event: AppEvent<T>, listener:T): Void;
+
+	static function removeAllListeners<T:Function>(event: AppEvent<T>): Void;
 }
 
-@:enum abstract AppEvent<T:haxe.Constraints.Function>(Event<T>) to Event<T> {
+@:enum abstract AppEvent<T: Function>(Event<T>) to Event<T> {
 
 	var OPEN:AppEvent<String->Void> = "open";
 
-	var REOPEN: AppEvent<Void->Void> = "reopen";
+	var REOPEN: AppEvent<Void->Void> = "reopen"; // Mac
 }
