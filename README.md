@@ -1,6 +1,8 @@
 extern of [nw.js](https://github.com/nwjs/nw.js) for haxe
 -------
 
+**WIP**
+
 DOCS: <http://docs.nwjs.io>
 
 Note: `-D nw-old` is used for old version of nw.js.
@@ -23,8 +25,6 @@ dependencies: [hxnodejs](https://github.com/HaxeFoundation/hxnodejs)
 
 
 ### DIR(es)
-
-**WIP**
 
 Some arguments may not be correct,
 Since haxe(v3.4) currently does not correctly handle the optional-arguments for extern-static-extension).
