@@ -25,3 +25,21 @@ class HXItor<T> {
 
 	public inline function next (): T return data[cur++];
 }
+
+@:native("HXItor_a")
+class UnsafeHXItor<T> {
+
+	var etor: ES6Itor<T>;
+
+	var cur: ES6ItorValue<T>;
+
+	public function new (etor: ES6Itor<T>) {
+		this.etor = etor;
+	}
+	public function hasNext():Bool {
+		cur = etor.next();
+		return !cur.done;
+	}
+
+	public inline function next(): T return cur.value;
+}
