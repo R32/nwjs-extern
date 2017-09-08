@@ -1,9 +1,8 @@
 package es;
 
-import es.ES6Itor;
-
 @:native("Map")
 extern class IntMap<T> implements haxe.Constraints.IMap<Int,T> {
+	@:overload(function(sm: IntMap<T>): IntMap<T>{})
 	function new();
 	function set(key: Int, value: T): Void;
 	function get( key: Int ): Null<T>;
@@ -13,8 +12,9 @@ extern class IntMap<T> implements haxe.Constraints.IMap<Int,T> {
 	function forEach(callb: T->Int->Void): Void;
 	function clear(): Void;
 
-	inline function keys(): Iterator<Int> return new HXItor<Int>( nativeKeys() );
-	inline function iterator(): Iterator<T> return new HXItor<T>( nativeValues());
+	inline function copy(): IntMap<T>  return new IntMap(this);
+	inline function keys(): Iterator<Int> return (untyped Array.from(nativeKeys()): Array<Int>).iterator();
+	inline function iterator(): Iterator<T> return (untyped Array.from(nativeValues()): Array<T>).iterator();
 
 	function toString() : String;
 
@@ -25,6 +25,7 @@ extern class IntMap<T> implements haxe.Constraints.IMap<Int,T> {
 
 @:native("Map")
 extern class StringMap<T> implements haxe.Constraints.IMap<String,T> {
+	@:overload(function(sm: StringMap<T>): StringMap<T>{})
 	function new();
 	function set(key: String, value: T): Void;
 	function get( key: String ): Null<T>;
@@ -34,8 +35,9 @@ extern class StringMap<T> implements haxe.Constraints.IMap<String,T> {
 	function forEach(callb: T->String->Void): Void;
 	function clear(): Void;
 
-	inline function keys(): Iterator<String> return new HXItor<String>( nativeKeys() );
-	inline function iterator(): Iterator<T> return new HXItor<T>( nativeValues());
+	inline function copy(): StringMap<T>  return new StringMap(this);
+	inline function keys(): Iterator<String> return (untyped Array.from(nativeKeys()): Array<String>).iterator();
+	inline function iterator(): Iterator<T> return (untyped Array.from(nativeValues()): Array<T>).iterator();
 
 	function toString() : String;
 
@@ -46,6 +48,7 @@ extern class StringMap<T> implements haxe.Constraints.IMap<String,T> {
 
 @:native("Map")
 extern class AnyMap<T> implements haxe.Constraints.IMap<Any,T> {
+	@:overload(function(sm: AnyMap<T>): AnyMap<T>{})
 	function new();
 	function set(key: Any, value: T): Void;
 	function get( key: Any ): Null<T>;
@@ -55,8 +58,9 @@ extern class AnyMap<T> implements haxe.Constraints.IMap<Any,T> {
 	function forEach(callb: T->Any->Void): Void;
 	function clear(): Void;
 
-	inline function keys(): Iterator<Any> return new HXItor<Any>( nativeKeys() );
-	inline function iterator(): Iterator<T> return new HXItor<T>( nativeValues());
+	inline function copy(): AnyMap<T>  return new AnyMap(this);
+	inline function keys(): Iterator<Any> return (untyped Array.from(nativeKeys()): Array<Any>).iterator();
+	inline function iterator(): Iterator<T> return (untyped Array.from(nativeValues()): Array<T>).iterator();
 
 	function toString() : String;
 
@@ -87,6 +91,8 @@ abstract Map<K,V>(IMap<K,V> ) {
 	public inline function forEach(callb: V->K->Void) untyped this.forEach(callb);
 
 	public inline function clear() untyped this.clear();
+
+	public inline function copy():Map<K,V> return untyped this.copy();
 
 	public inline function keys():Iterator<K> return this.keys();
 
@@ -127,4 +133,11 @@ abstract Map<K,V>(IMap<K,V> ) {
 
 @:dox(hide)
 @:deprecated
-typedef IMap<K, V> = haxe.Constraints.IMap<K, V>;
+private typedef IMap<K, V> = haxe.Constraints.IMap<K, V>;
+
+private typedef ES6Itor<T> = {
+	next: Void -> {
+		value: T,
+		done: Bool
+	}
+}

@@ -71,7 +71,11 @@ class ESTest {
 		]);
 		$type(m3);
 		m3.set("three", 3);
+		var m4 = m3.copy();
+		m4.set("one", 101);
 		for (k in m3.keys()) trace(k + ": " + m3.get(k));
+		for (v in m4) trace(v);
+		m4.clear();
 	}
 
 	static function biggerthan3(v:Int, i:Int):Bool {
