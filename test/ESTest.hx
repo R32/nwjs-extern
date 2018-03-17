@@ -2,7 +2,7 @@ package;
 
 import es.Macros.*;
 using es.pch.Chrome;
-
+import js.Map;
 
 class ESTest {
 
@@ -14,7 +14,7 @@ class ESTest {
 
 		trace("s = " + s + ", p = " + p);
 
-		trace( "s.slice(0): " + s.slice(0));
+		trace( "s.slice(0): " + s.slice(0, s.length));
 
 		trace( "s.search(p): " + s.search(p) );
 
@@ -22,7 +22,7 @@ class ESTest {
 
 		trace( "s.replace(p, \"xy\"): " + s.replace(p, "xy") );
 
-		trace( "s.slice(1): " + s.slice(1) );
+		trace( "s.slice(1): " + s.slice(1, s.length) );
 
 		trace( "s.trim(): " + s.trim() );
 
@@ -58,18 +58,19 @@ class ESTest {
 
 		trace ("a.findIndex(biggerthan3): " + a.findIndex(biggerthan3));
 
-		trace ("a.copyWithin(1, 2): " + a.copyWithin(1, 2));
+		trace ("a.copyWithin(1, 2): " + a.copyWithin(1, 2, a.length));
 
 		trace ("a.fill(0): " + a.fill(0));
 
 
 		// Map
 		trace("------ es5 Map ------");
+
 		var m3 = JMAP([
 			"one" => 1,
 			"two" => 2
 		]);
-		$type(m3);
+		//$type(m3);
 		m3.set("three", 3);
 		var m4 = m3.copy();
 		m4.set("one", 101);
