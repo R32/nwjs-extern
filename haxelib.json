@@ -1,0 +1,13 @@
+{
+  "name": "nwjs-extern",
+  "classPath": "src",
+  "version": "0.1.0",
+  "url": "https://github.com/R32/nwjs-extern",
+  "license": "MIT",
+  "tags": ["nwjs", "extern", "js"],
+  "description": "Extern definitions for NW.js.",
+  "releasenote": "init",
+  "dependencies": {
+  },
+  "contributors": ["r32"]
+}
